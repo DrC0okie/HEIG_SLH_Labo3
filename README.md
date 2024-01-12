@@ -1,2 +1,23 @@
 # HEIG_SLH_Labo3
-Casbin
+
+
+## Introduction
+
+
+
+## Critical resources & actions
+
+### Resources
+
+### Actions
+
+
+
+### Critical resources authorization
+
+
+
+## Access control tests
+
+
+

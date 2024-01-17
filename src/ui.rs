@@ -1,8 +1,10 @@
-use crate::{Review, Role, User};
+use crate::models::{Review, Role, User};
 use anyhow::{anyhow, bail};
 use derive_more::Display;
 use inquire::{Confirm, CustomType, Password, Select, Text};
 use strum::{EnumIter, IntoEnumIterator};
+use crate::utils::input_validation;
+use crate::utils::hashing;
 
 enum ShouldContinue {
     Yes,

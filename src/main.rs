@@ -41,13 +41,7 @@ enum Role {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Display)]
-#[display(
-fmt = r#"Avis sur "{}", par {}: "{}", {}/5"#,
-establishment,
-reviewer,
-comment,
-grade
-)]
+#[display(fmt = r#"Avis sur "{}", par {}: "{}", {}/5"#,establishment,reviewer,comment,grade)]
 struct Review {
     establishment: String,
     reviewer: String,

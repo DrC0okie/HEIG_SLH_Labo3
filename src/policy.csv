@@ -1,0 +1,9 @@
+p, r.sub.role == 'Reviewer', r.obj.reviewer == r.sub.name, write
+p, r.sub.role == 'Reviewer', r.obj.reviewer == r.sub.name, read
+
+p, r.sub.role == 'Owner' && r.sub.owned_establishment == r.obj.establishment, r.obj.establishment, read
+p, r.sub.role == 'Owner', r.obj.reviewer == r.sub.name, read
+
+p, r.sub.role == 'Admin', *, read
+p, r.sub.role == 'Admin', *, write
+p, r.sub.role == 'Admin', *, delete

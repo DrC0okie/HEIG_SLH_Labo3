@@ -1,5 +1,4 @@
 use crate::{Review, Role, User};
-use crate::review::Review;
 use anyhow::{anyhow, bail};
 use derive_more::Display;
 use inquire::{Confirm, CustomType, Password, Select, Text};

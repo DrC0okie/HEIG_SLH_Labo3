@@ -18,7 +18,6 @@ tokio = {version = "1.12.0", features = ["full"]}
 argon2 = "0.5.2"
 lazy_static = "1.4.0"
 zxcvbn = "2.2.2"
-regex = "1.10.2"
 log = "0.4.20"
 env_logger = "0.10.1"
 rand = "0.8.5"

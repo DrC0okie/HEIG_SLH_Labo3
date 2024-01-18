@@ -23,7 +23,7 @@ macro_rules! internal_error {
         let formatted_msg = format!($($arg)*);
         debug!("{}", formatted_msg);
         println!("{}", Red.paint("Erreur interne"));
-        return ShouldContinue::No
+        return ShouldContinue::No;
     }}
 }
 
@@ -32,8 +32,8 @@ pub fn start() {
 }
 
 fn loop_menu<F>(menu_handler: F)
-where
-    F: Fn() -> ShouldContinue,
+    where
+        F: Fn() -> ShouldContinue,
 {
     loop {
         match menu_handler() {
@@ -69,21 +69,17 @@ fn main_menu() -> ShouldContinue {
 
 fn login() -> ShouldContinue {
     // Checks the username length
-    let length_validator = |input: &str| match input_validation::is_length_valid(input, Some(1..32)){
-            Ok(()) => Ok(Validation::Valid),
-            Err(e) => Ok(Validation::Invalid(e.into()))
-        };
+    let length_validator = |input: &str| match input_validation::is_length_valid(input, Some(1..32)) {
+        Ok(()) => Ok(Validation::Valid),
+        Err(e) => Ok(Validation::Invalid(e.into()))
+    };
 
     // Prompt the user for a username
     let username = match Text::new("Entrez votre nom d'utilisateur : ")
         .with_validator(length_validator)
-        .prompt(){
+        .prompt() {
         Ok(u) => u,
-        Err(e) => {
-            println!("Erreur interne");
-            debug!("Login error in username prompt: {}", e);
-            return ShouldContinue::No;
-        }
+        Err(e) => internal_error!("Login error in username prompt: {}", e)
     };
 
     let password = Password::new("Entrez votre mot de passe: ")
@@ -106,14 +102,14 @@ fn register() -> ShouldContinue {
 
     // Checks the username length
     let length_validator: Box<dyn StringValidator> = Box::new(|input: &str| {
-        match input_validation::is_length_valid(input, Some(1..32)){
+        match input_validation::is_length_valid(input, Some(1..32)) {
             Ok(()) => Ok(Validation::Valid),
             Err(e) => Ok(Validation::Invalid(e.into()))
         }
     });
 
     // Checks if the username already exists
-    let existing_user_validator: Box<dyn StringValidator>  =  Box::new(|input: &str|{
+    let existing_user_validator: Box<dyn StringValidator> = Box::new(|input: &str| {
         if User::get(input).is_some() {
             Ok(Validation::Invalid("Le nom d'utilisateur existe déjà".into()))
         } else {
@@ -124,15 +120,15 @@ fn register() -> ShouldContinue {
     // Prompt the user for a username
     let username = match Text::new("Entrez votre nom d'utilisateur : ")
         .with_validators(&[length_validator, existing_user_validator])
-        .prompt(){
-            Ok(u) => u,
-            Err(e) => internal_error!("Error in username prompt: {}", e)
-        };
+        .prompt() {
+        Ok(u) => u,
+        Err(e) => internal_error!("Error in username prompt: {}", e)
+    };
 
     // Checks if the password is valid
     let name = username.clone();
     let password_validator = move |input: &str|
-        match input_validation::validate_password(input, Some(name.as_str())){
+        match input_validation::validate_password(input, Some(name.as_str())) {
             Ok(()) => Ok(Validation::Valid),
             Err(e) => Ok(Validation::Invalid(e.into()))
         };
@@ -143,16 +139,16 @@ fn register() -> ShouldContinue {
         .with_validator(password_validator)
         .without_confirmation()
         .prompt() {
-            Ok(p) => p,
-            Err(e) =>  internal_error!("Error in password1 prompt: {}", e)
-        };
+        Ok(p) => p,
+        Err(e) => internal_error!("Error in password1 prompt: {}", e)
+    };
 
     // Checks if the passwords match
     let passwords_match_validator = move |p2: &str|
-        match input_validation::do_passwords_match(password1.as_str(), p2){
+        match input_validation::do_passwords_match(password1.as_str(), p2) {
             Ok(()) => Ok(Validation::Valid),
             Err(e) => Ok(Validation::Invalid(e.into()))
-    };
+        };
 
     // Prompt the user for a password confirmation
     let password2 = match Password::new("Confirmez votre mot de passe : ")
@@ -160,20 +156,20 @@ fn register() -> ShouldContinue {
         .with_validator(passwords_match_validator)
         .without_confirmation()
         .prompt() {
-            Ok(p) => p,
-            Err(e) => internal_error!("Error in password confirmation prompt: {}", e)
-        };
+        Ok(p) => p,
+        Err(e) => internal_error!("Error in password confirmation prompt: {}", e)
+    };
 
     // Checks if the user is an owner
     let is_owner = match Confirm::new("Êtes-vous propriétaire d'un établissement ?")
         .with_default(false)
         .prompt() {
-            Ok(o) => o,
-            Err(e) => internal_error!("Error in owner prompt: {}", e)
-        };
+        Ok(o) => o,
+        Err(e) => internal_error!("Error in owner prompt: {}", e)
+    };
 
     // Checks the length of the establishment name
-    let length_validator = |input: &str| match input_validation::is_length_valid(input, Some(1..64)){
+    let length_validator = |input: &str| match input_validation::is_length_valid(input, Some(1..64)) {
         Ok(()) => Ok(Validation::Valid),
         Err(e) => Ok(Validation::Invalid(e.into()))
     };
@@ -182,9 +178,9 @@ fn register() -> ShouldContinue {
     let role = if is_owner {
         let owned_establishment = match Text::new("Entrez le nom de votre établissement : ")
             .with_validator(length_validator)
-            .prompt(){
-                Ok(i) => i,
-                Err(e) => internal_error!("Error in establishment prompt: {}", e)
+            .prompt() {
+            Ok(i) => i,
+            Err(e) => internal_error!("Error in establishment prompt: {}", e)
         };
         Role::Owner {
             owned_establishment,
@@ -194,7 +190,7 @@ fn register() -> ShouldContinue {
     };
 
     // Hash the password
-    let hash = match hashing::hash_password(password2.as_bytes()){
+    let hash = match hashing::hash_password(password2.as_bytes()) {
         Ok(h) => h,
         Err(e) => internal_error!("Hashing error during registration: {}", e)
     };
@@ -207,7 +203,7 @@ fn register() -> ShouldContinue {
     });
 
     // Save the DB
-    match DATABASE.lock().unwrap().save(){
+    match DATABASE.lock().unwrap().save() {
         Ok(_) => {},
         Err(e) => internal_error!("Error saving the database: {}", e)
     }

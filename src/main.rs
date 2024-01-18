@@ -3,9 +3,8 @@ mod ui;
 mod utils;
 mod models;
 
-use db::{Database, DATABASE};
+use db::Database;
 use crate::models::{Review, Role, User};
-use serde::{Deserialize, Serialize};
 
 // You can change the default content of the database by changing this `init` method
 impl Database {
@@ -49,15 +48,9 @@ impl Database {
 
 fn main() {
     env_logger::builder()
-        .filter_level(log::LevelFilter::Trace)
+        .filter_level(log::LevelFilter::Error)// Change this to `Debug` to see debug logs
         .init();
 
     utils::hashing::init();
     ui::start();
-
-    DATABASE
-        .lock()
-        .unwrap()
-        .save()
-        .expect("impossible de sauvegarder la base de données");
 }

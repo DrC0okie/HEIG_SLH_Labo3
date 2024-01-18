@@ -1,5 +1,4 @@
 use std::ops::Range;
-use crate::models::User;
 use zxcvbn::zxcvbn;
 
 const MIN_PASSWORD_STRENGTH: u8 = 3;
@@ -69,6 +68,7 @@ pub fn validate_password(password: &str, username: Option<&str>) -> Result<(), S
 #[cfg(test)]
 mod tests {
     use crate::models::Role;
+    use crate::models::User;
     use super::*;
 
     #[test]

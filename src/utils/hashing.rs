@@ -1,6 +1,5 @@
 use argon2::{Argon2, password_hash::{SaltString, PasswordHasher}, PasswordHash, PasswordVerifier};
 use lazy_static::lazy_static;
-use log::{error, info};
 use rand::rngs::OsRng;
 
 // The dummy hash is used to prevent timing attacks.
@@ -16,19 +15,11 @@ lazy_static! {
 /// * `Err(String)` containing an error message if the password hashing fails.
 pub fn hash_password(password: &[u8]) -> Result<String, String> {
     let salt = SaltString::generate(&mut OsRng);
-
-    // https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
     let argon2 = Argon2::default();
 
     match argon2.hash_password(password, &salt) {
-        Ok(password_hash) => {
-            info!("Password hashed successfully");
-            Ok(password_hash.to_string())
-        }
-        Err(e) => {
-            error!("Hashing error: {}", e);
-            Err(e.to_string())
-        }
+        Ok(password_hash) => Ok(password_hash.to_string()),
+        Err(e) => Err(e.to_string())
     }
 }
 
@@ -41,22 +32,11 @@ pub fn hash_password(password: &[u8]) -> Result<String, String> {
 /// * `Err(String)` - An error message if the verification process fails.
 pub fn verify_password(hashed_password: &str, password: &[u8]) -> Result<bool, String> {
     // Parse the string into PasswordHash
-    let parsed_hash = PasswordHash::new(hashed_password)
-        .map_err(|e| e.to_string())?;
-
+    let parsed_hash = PasswordHash::new(hashed_password).map_err(|e| e.to_string())?;
     match Argon2::default().verify_password(password, &parsed_hash) {
-        Ok(()) => {
-            info!("Password verified successfully");
-            Ok(true)
-        }
-        Err(argon2::password_hash::Error::Password) => {
-            info!("Password does not match");
-            Ok(false)
-        }
-        Err(e) => {
-            error!("Verification error: {}", e);
-            Err(e.to_string())
-        }
+        Ok(()) => Ok(true),
+        Err(argon2::password_hash::Error::Password) => Ok(false),
+        Err(e) => Err(e.to_string())
     }
 }
 

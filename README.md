@@ -27,7 +27,11 @@
 
 Separation of concerns: The user, Role and Review are implemented in the main file. I created separate "models" crate for them.
 
+The `PasswordDisplayMode` was `Hidden`, an awful UX. I set it to `Masked`
 
+
+
+The DB is saved only when the user decides to quit properly the application. This could be a problem if for some reason the user decides to enter `ctrl + c`, the database would not be saved. Instead of saving the DB when the user quits the program, I decided to save it each time an new element is created (registration + review).
 
 
 

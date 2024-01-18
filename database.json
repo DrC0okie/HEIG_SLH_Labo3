@@ -1,31 +1,8 @@
 {
   "users": {
-    "Sire Debeugg": {
-      "name": "Sire Debeugg",
-      "password": "0n_d17_ch1ffr3r_3t_p4s_crypt3r",
-      "role": {
-        "name": "Reviewer"
-      }
-    },
-    "test": {
-      "name": "test",
-      "password": "palasuxx4ever",
-      "role": {
-        "name": "Owner",
-        "owned_establishment": "dddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-      }
-    },
-    "Conte Devvisse": {
-      "name": "Conte Devvisse",
-      "password": "c41ss3-à-0ut1l",
-      "role": {
-        "name": "Owner",
-        "owned_establishment": "McDonalds"
-      }
-    },
     "TheStrongestOne": {
-      "name": "TheStrongestOne",
-      "password": "Sur terre comme au ciel, moi seul mérite d'être vénéré",
+      "name": "admin",
+      "password": "$argon2id$v=19$m=19456,t=2,p=1$6CILb4E913S3DFD595jMgg$Z5s8swnzTrcR/o1Sm13cb0BF5vScxcJUtGFQO94YsYQ",
       "role": {
         "name": "Admin"
       }
@@ -34,26 +11,8 @@
   "reviews": [
     {
       "establishment": "McDonalds",
-      "reviewer": "Sire Debeugg",
+      "reviewer": "admin",
       "comment": "À fuire !",
-      "grade": 1
-    },
-    {
-      "establishment": "Bistrot des Lutins",
-      "reviewer": "Sire Debeugg",
-      "comment": "Au top !",
-      "grade": 4
-    },
-    {
-      "establishment": "Cafétéria du coin",
-      "reviewer": "Sire Debeugg",
-      "comment": "Médiocre.",
-      "grade": 2
-    },
-    {
-      "establishment": "Triple R",
-      "reviewer": "Conte Devvisse",
-      "comment": "Venez chez moi !",
       "grade": 1
     }
   ]

@@ -51,6 +51,5 @@ fn main() {
         .filter_level(log::LevelFilter::Error)// Change this to `Debug` to see debug logs
         .init();
 
-    utils::hashing::init();
     ui::start();
 }

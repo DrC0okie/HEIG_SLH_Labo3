@@ -1,5 +1,19 @@
 {
   "users": {
+    "tim": {
+      "name": "tim",
+      "password": "$argon2id$v=19$m=19456,t=2,p=1$+Ngp7yXPiN67Ra+80unFsA$yCzmljT60tvEGIBtQMFJao5s2hBH8queIu88RkiMpLE",
+      "role": {
+        "name": "Reviewer"
+      }
+    },
+    "t": {
+      "name": "t",
+      "password": "$argon2id$v=19$m=19456,t=2,p=1$in5FrJizQMb+njZHhQo3sw$ZI0723Sh1mg8uoS8cO14A/vNkeqg1VTh0m5s+sbIaFM",
+      "role": {
+        "name": "Reviewer"
+      }
+    },
     "TheStrongestOne": {
       "name": "admin",
       "password": "$argon2id$v=19$m=19456,t=2,p=1$6CILb4E913S3DFD595jMgg$Z5s8swnzTrcR/o1Sm13cb0BF5vScxcJUtGFQO94YsYQ",

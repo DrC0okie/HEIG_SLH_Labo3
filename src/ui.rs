@@ -7,7 +7,6 @@ use strum::{EnumIter, IntoEnumIterator};
 use crate::utils::input_validation;
 use crate::utils::hashing;
 use ansi_term::Colour::Red;
-use log::debug;
 use crate::db::DATABASE;
 
 enum ShouldContinue {
@@ -19,11 +18,12 @@ enum ShouldContinue {
 macro_rules! internal_error {
     ($($arg:tt)*) => {{
         use ansi_term::Colour::Red;  // Ensure Red is in scope
+        use log::error;
 
         let formatted_msg = format!($($arg)*);
-        debug!("{}", formatted_msg);
+        error!("{}", formatted_msg);
         println!("{}", Red.paint("Erreur interne"));
-        return ShouldContinue::No;
+        return ShouldContinue::Yes;
     }}
 }
 
@@ -68,8 +68,8 @@ fn main_menu() -> ShouldContinue {
 }
 
 fn login() -> ShouldContinue {
-    // Checks the username length
-    let length_validator = |input: &str| match input_validation::is_length_valid(input, Some(1..32)) {
+    // Checks the input length for password and username (DoS)
+    let length_validator = |input: &str| match input_validation::is_length_valid(input, Some(1..64)) {
         Ok(()) => Ok(Validation::Valid),
         Err(e) => Ok(Validation::Invalid(e.into()))
     };
@@ -82,20 +82,40 @@ fn login() -> ShouldContinue {
         Err(e) => internal_error!("Login error in username prompt: {}", e)
     };
 
-    let password = Password::new("Entrez votre mot de passe: ")
+    // Prompt the user for a password
+    let password = match Password::new("Entrez votre mot de passe : ")
+        .with_display_mode(PasswordDisplayMode::Masked)
+        .with_validator(length_validator)
         .without_confirmation()
-        .prompt()
-        .unwrap();
-
-    let user = User::get(&username).expect("l'utilisateur n'existe pas");
-
-    if password == user.password {
-        loop_menu(|| user_menu(&user));
-    } else {
-        println!("Le mot de passe est incorrect");
+        .prompt() {
+        Ok(p) => p,
+        Err(e) => internal_error!("Login error in password prompt: {}", e)
+    };
+    let mut ok = false;
+    let user = User::get(&username);
+    if user.is_some(){
+        let hashed_password = user.clone().unwrap().password;
+        ok = match hashing::verify_password(&hashed_password, &password) {
+            Ok(true) => true,
+            Ok(false) => false,
+            Err(e) => internal_error!("Password verification error during login: {}", e)
+        }
+    }// User not found => dummy hash
+    else {
+        let _ = match hashing::hash_password(&password) {
+            Ok(h) => h,
+            Err(e) => internal_error!("Dummy hashing error during login: {}", e)
+        };
     }
 
-    ShouldContinue::Yes
+    if ok {
+        println!("Bienvenue {} !", username);
+        loop_menu(|| user_menu(&user.clone().unwrap()));
+        ShouldContinue::Yes // Loop to the main menu
+    } else {
+        println!("{}", Red.paint("Nom d'utilisateur ou mot de passe incorrect"));
+        ShouldContinue::Yes // Loop to the main menu
+    }
 }
 
 fn register() -> ShouldContinue {
@@ -190,7 +210,7 @@ fn register() -> ShouldContinue {
     };
 
     // Hash the password
-    let hash = match hashing::hash_password(password2.as_bytes()) {
+    let hash = match hashing::hash_password(&password2) {
         Ok(h) => h,
         Err(e) => internal_error!("Hashing error during registration: {}", e)
     };
@@ -305,3 +325,4 @@ fn delete_review(_user: &User) -> anyhow::Result<ShouldContinue> {
 
     Ok(ShouldContinue::Yes)
 }
+

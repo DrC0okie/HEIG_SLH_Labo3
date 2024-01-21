@@ -1,18 +1,25 @@
 {
   "users": {
+    "admin": {
+      "name": "admin",
+      "password": "$argon2id$v=19$m=19456,t=2,p=1$h9e5P8QpoTQA5f7l3OLBng$n7/7hbIX61ItuIjgKqlDywiL6S46wvZw+7bXcWH++Y4",
+      "role": {
+        "name": "Admin"
+      }
+    },
+    "review": {
+      "name": "review",
+      "password": "$argon2id$v=19$m=19456,t=2,p=1$He/z0Mw6oDLf50nMUMmJ4w$+mHlGsNKj+YKsY5NR82RDx+G45HoXPrr8gbr87KYEOo",
+      "role": {
+        "name": "Reviewer"
+      }
+    },
     "tim": {
       "name": "tim",
       "password": "$argon2id$v=19$m=19456,t=2,p=1$h9e5P8QpoTQA5f7l3OLBng$n7/7hbIX61ItuIjgKqlDywiL6S46wvZw+7bXcWH++Y4",
       "role": {
         "name": "Owner",
         "owned_establishment": "SelHash"
-      }
-    },
-    "TheStrongestOne": {
-      "name": "admin",
-      "password": "$argon2id$v=19$m=19456,t=2,p=1$6CILb4E913S3DFD595jMgg$Z5s8swnzTrcR/o1Sm13cb0BF5vScxcJUtGFQO94YsYQ",
-      "role": {
-        "name": "Admin"
       }
     }
   },
@@ -27,6 +34,18 @@
       "establishment": "test",
       "reviewer": "tim",
       "comment": "bof",
+      "grade": 1
+    },
+    {
+      "establishment": "SelHash",
+      "reviewer": "review",
+      "comment": "Vraiment bien!",
+      "grade": 5
+    },
+    {
+      "establishment": "test",
+      "reviewer": "admin",
+      "comment": "pas testé",
       "grade": 1
     }
   ]

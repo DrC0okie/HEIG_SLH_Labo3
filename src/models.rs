@@ -5,9 +5,10 @@ use crate::db::DATABASE;
 #[derive(Debug, Serialize, Deserialize, Clone, Hash)]
 #[serde(tag = "name")]
 pub enum Action {
-    Read,
-    Write,
-    Delete,
+    ReadOwnReviews,
+    ReadEstablishmentReviews,
+    WriteReview,
+    DeleteReview,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Hash)]

@@ -1,21 +1,24 @@
-use ansi_term::Color::Green;
+use ansi_term::Color::{Green};
 use crate::models::{Action, Review, Role, User};
-use anyhow::{anyhow, bail};
 use derive_more::Display;
 use inquire::{Confirm, CustomType, max_length, min_length, Password, PasswordDisplayMode, Select, Text};
-use inquire::validator::{Validation};
+use inquire::validator::{MaxLengthValidator, MinLengthValidator, Validation};
 use strum::{EnumIter, IntoEnumIterator};
-use crate::utils::input_validation;
-use crate::utils::hashing;
+use crate::utils::{input_validation, hashing, enforcer::ENFORCER};
 use ansi_term::Colour::Red;
 use casbin::{CoreApi};
+use inquire::error::InquireResult;
 use crate::db::DATABASE;
-use crate::utils::enforcer::ENFORCER;
 
 enum ShouldContinue {
     Yes,
     No,
 }
+
+const MAX_USERNAME_LENGTH: usize = 64;
+const MAX_PASSWORD_LENGTH: usize = 64;
+const MAX_ESTA_NAME_LENGTH: usize = 128;
+const MAX_COMMENT_LENGTH: usize = 512;
 
 #[macro_export]
 macro_rules! internal_error {
@@ -73,10 +76,7 @@ fn main_menu() -> ShouldContinue {
 fn login() -> ShouldContinue {
 
     // Prompt the user for a username
-    let username = match Text::new("Entrez votre nom d'utilisateur : ")
-        .with_validator(min_length!(1, "Le nom d'utilisateur ne peut pas être vide"))
-        .with_validator(max_length!(64, "Le nom d'utilisateur ne peut pas dépasser 64 caractères"))
-        .prompt() {
+    let username = match prompt_text("le nom d'utilisateur", MAX_USERNAME_LENGTH){
         Ok(u) => u,
         Err(e) => internal_error!("Login error in username prompt: {}", e)
     };
@@ -84,8 +84,8 @@ fn login() -> ShouldContinue {
     // Prompt the user for a password
     let password = match Password::new("Entrez votre mot de passe : ")
         .with_display_mode(PasswordDisplayMode::Masked)
-        .with_validator(min_length!(1, "Le mot de passe ne peut pas être vide"))
-        .with_validator(max_length!(64, "Le mot de passe ne peut pas dépasser 64 caractères"))
+        .with_validator(empty_validator("Le mot de passe"))
+        .with_validator(max_length_validator(MAX_PASSWORD_LENGTH, "Le mot de passe"))
         .without_confirmation()
         .prompt() {
         Ok(p) => p,
@@ -109,7 +109,7 @@ fn login() -> ShouldContinue {
     }
 
     if ok {
-        println!("Bienvenue {} !", username);
+        println!("{} {}", Green.paint("Bienvenue, "), Green.paint(username));
         loop_menu(|| user_menu(&user.clone().unwrap()));
         ShouldContinue::Yes // Loop to the main menu
     } else {
@@ -128,8 +128,8 @@ fn register() -> ShouldContinue {
 
     // Prompt the user for a username
     let username = match Text::new("Entrez votre nom d'utilisateur : ")
-        .with_validator(min_length!(1, "Le nom d'utilisateur ne peut pas être vide"))
-        .with_validator(max_length!(64, "Le nom d'utilisateur ne peut pas dépasser 64 caractères"))
+        .with_validator(empty_validator("Le nom d'utilisateur"))
+        .with_validator(max_length_validator(MAX_USERNAME_LENGTH, "Le nom d'utilisateur"))
         .with_validator(existing_user_validator)
         .prompt() {
         Ok(u) => u,
@@ -182,8 +182,8 @@ fn register() -> ShouldContinue {
     // Prompt the user for an establishment name
     let role = if is_owner {
         let owned_establishment = match Text::new("Entrez le nom de votre établissement : ")
-            .with_validator(min_length!(1, "Le nom de l'établissement ne peut pas être vide"))
-            .with_validator(max_length!(64, "Le nom de l'établissement ne peut pas dépasser 64 caractères"))
+            .with_validator(empty_validator("Le nom de l'établissement"))
+            .with_validator(max_length_validator(MAX_ESTA_NAME_LENGTH, "Le nom de l'établissement"))
             .prompt() {
             Ok(i) => i,
             Err(e) => internal_error!("Error in establishment prompt: {}", e)
@@ -241,15 +241,29 @@ fn user_menu(user: &User) -> ShouldContinue {
     };
 
     match choice {
-        Choice::ListOwnReviews => list_own_reviews(user),
-        Choice::AddReview => add_review(user),
-        Choice::ListEstablishmentReviews => list_establishment_reviews(),
-        Choice::DeleteReview => delete_review(user).unwrap(),
+        Choice::ListOwnReviews => list_own_reviews(&user),
+        Choice::AddReview => add_review(&user),
+        Choice::ListEstablishmentReviews => list_establishment_reviews(&user),
+        Choice::DeleteReview => delete_review(&user),
         Choice::Logout => ShouldContinue::No,
     }
 }
 
 fn list_own_reviews(user: &User) -> ShouldContinue {
+    let e = &*ENFORCER;
+    match e.enforce((&user, "", Action::ReadOwnReviews)){
+        Ok(true) => (),
+        Ok(false) => {
+            println!("{}", Red.paint("Vous ne pouvez pas voir vos avis."));
+            return ShouldContinue::Yes;
+        },
+        Err(e) => internal_error!("List own reviews error in policy enforcement: {}", e)
+    };
+
+    if Review::by(&user.name).is_empty() {
+        println!("{}", Green.paint("Vous n'avez pas encore écrit d'avis."));
+    }
+
     for review in Review::by(&user.name) {
         println!("{}", review);
     }
@@ -260,17 +274,23 @@ fn list_own_reviews(user: &User) -> ShouldContinue {
 fn add_review(user: &User) -> ShouldContinue {
 
     //prompt the establishment
-    let establishment = match Text::new("Entrez le nom de l'établissement : ")
-        .with_validator(min_length!(1, "Le nom de l'établissement ne peut pas être vide"))
-        .with_validator(max_length!(128, "Le nom de l'établissement ne peut pas dépasser 128 caractères"))
-        .prompt() {
+    let establishment = match prompt_text("le nom de l'établissement", MAX_ESTA_NAME_LENGTH) {
         Ok(p) => p,
         Err(e) => internal_error!("Add review error in establishment prompt: {}", e)
     };
 
+    // Check if the user has already written a review for this establishment
+    match Review::get(&user.name, &establishment) {
+        Some(..) => {
+            println!("{}", Red.paint("Vous avez déjà écrit un avis pour cet établissement."));
+            return ShouldContinue::Yes;
+        },
+        None => {}
+    }
+
     // Check if the user can write reviews for this establishment
     let e = &*ENFORCER;
-    match e.enforce((&user, &establishment, Action::Write)) {
+    match e.enforce((&user, &establishment, Action::WriteReview)) {
         Ok(true) => (),
         Ok(false) => {
             println!("{}", Red.paint("Impossible d'ajouter un avis sur votre propre établissement."));
@@ -280,10 +300,7 @@ fn add_review(user: &User) -> ShouldContinue {
     }
 
     // Prompt the comment
-    let comment = match Text::new("Votre avis : ")
-        .with_validator(min_length!(1, "Le commentaire ne peut pas être vide"))
-        .with_validator(max_length!(512, "Le commentaire ne peut pas dépasser 512 caractères"))
-        .prompt() {
+    let comment = match prompt_text("Votre avis", MAX_COMMENT_LENGTH){
         Ok(p) => p,
         Err(e) => internal_error!("Add review error in comment prompt: {}", e)
     };
@@ -306,7 +323,13 @@ fn add_review(user: &User) -> ShouldContinue {
 
     // Save the review
     let review = Review::new(&establishment, &user.name, &comment, grade);
-    let _ = review.save().map_err(|e| { internal_error!("Error saving the review: {}", e)});
+    match review.save(){
+        Ok(_) => {}
+        Err(e) => { // This should never happen
+            println!("{}", Red.paint(e.to_string()));
+            return ShouldContinue::Yes;
+        }
+    }
 
     // Save the DB
     match DATABASE.lock().unwrap().save() {
@@ -318,10 +341,21 @@ fn add_review(user: &User) -> ShouldContinue {
     ShouldContinue::Yes
 }
 
-fn list_establishment_reviews() -> ShouldContinue {
-    let establishment = Text::new("Entrez le nom de l'établissement : ")
-        .prompt()
-        .unwrap();
+fn list_establishment_reviews(user: &User) -> ShouldContinue {
+    let establishment = match prompt_text("le nom de l'établissement", MAX_ESTA_NAME_LENGTH){
+        Ok(p) => p,
+        Err(e) => internal_error!("List establishment reviews error in establishment prompt: {}", e)
+    };
+
+    let e = &*ENFORCER;
+    match e.enforce((&user, &establishment, Action::ReadEstablishmentReviews)){
+        Ok(true) => (),
+        Ok(false) => {
+            println!("{}", Red.paint("Vous ne pouvez pas voir les avis de cet établissement."));
+            return ShouldContinue::Yes;
+        },
+        Err(e) => internal_error!("List establishment reviews error in policy enforcement: {}", e)
+    };
 
     for review in Review::of(&establishment) {
         println!("{}", review);
@@ -330,21 +364,58 @@ fn list_establishment_reviews() -> ShouldContinue {
     ShouldContinue::Yes
 }
 
-fn delete_review(_user: &User) -> anyhow::Result<ShouldContinue> {
-    let establishment = Text::new("Entrez le nom de l'établissement : ").prompt()?;
+fn delete_review(user: &User) -> ShouldContinue {
+    let establishment = match prompt_text("le nom de l'établissement", MAX_ESTA_NAME_LENGTH) {
+        Ok(p) => p,
+        Err(e) => internal_error!("Delete review error in establishment prompt: {}", e)
+    };
 
-    let is_admin = Confirm::new("Êtes-vous administrateur ?")
-        .with_default(true)
-        .prompt()?;
+    let name = match prompt_text("le nom de l'auteur", MAX_USERNAME_LENGTH){
+        Ok(p) => p,
+        Err(e) => internal_error!("Delete review error in name prompt: {}", e)
+    };
 
-    if !is_admin {
-        bail!("vous n'êtes pas administrateur")
-    }
+    let e = &*ENFORCER;
+    match e.enforce((&user, "", Action::DeleteReview)){
+        Ok(true) => (),
+        Ok(false) => {
+            println!("{}", Red.paint("Vous ne pouvez pas supprimer cet avis."));
+            return ShouldContinue::Yes;
+        },
+        Err(e) => internal_error!("Delete review error in policy enforcement: {}", e)
+    };
 
-    let name = Text::new("Entrez le nom de l'auteur de l'avis : ").prompt()?;
-    let review = Review::get(&name, &establishment).ok_or(anyhow!("avis manquant"))?;
+    let review = match Review::get(&name, &establishment){
+        Some(r) => r,
+        None => {
+            println!("{}", Red.paint("Avis ou établissement introuvable."));
+            return ShouldContinue::Yes;
+        }
+    };
 
     review.delete();
 
-    Ok(ShouldContinue::Yes)
+    // Save the DB
+    match DATABASE.lock().unwrap().save() {
+        Ok(_) => {}
+        Err(e) => internal_error!("Error saving the database: {}", e)
+    }
+
+    println!("{} {} {}", Green.paint("Avis de"), Green.paint(name), Green.paint("supprimé."));
+    ShouldContinue::Yes
+}
+
+fn empty_validator(object: &str) -> MinLengthValidator {
+    min_length!(1, format!("{} ne peut pas être vide", object))
+}
+
+fn max_length_validator(length: usize,object: &str) -> MaxLengthValidator {
+    max_length!(length, format!("{} ne peut pas dépasser {} caractères", object, length))
+}
+
+fn prompt_text(object: &str, length: usize)->InquireResult<String>{
+    Text::new(&format!("Entrez {}: ", object))
+        .with_validator(empty_validator(object))
+        .with_validator(max_length_validator(length, object))
+        .prompt()
 }

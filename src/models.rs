@@ -4,6 +4,14 @@ use crate::db::DATABASE;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Hash)]
 #[serde(tag = "name")]
+pub enum Action {
+    Read,
+    Write,
+    Delete,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Hash)]
+#[serde(tag = "name")]
 pub enum Role {
     Reviewer,
     Owner { owned_establishment: String },

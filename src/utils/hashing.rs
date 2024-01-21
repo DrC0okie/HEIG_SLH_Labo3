@@ -1,5 +1,4 @@
 use argon2::{Argon2, password_hash::{SaltString, PasswordHasher}, PasswordHash, PasswordVerifier};
-use lazy_static::lazy_static;
 use rand::rngs::OsRng;
 
 /// Hashes a password using the Argon2 algorithm.

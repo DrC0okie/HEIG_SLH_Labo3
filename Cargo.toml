@@ -16,10 +16,11 @@ strum = { version = "0.25.0", features = ["derive"] }
 casbin = { version = "2.1.0", default-features = false, features = ["runtime-async-std", "logging", "incremental"] }
 tokio = {version = "1.35.1", features = ["full"]}
 argon2 = "0.5.2"
-lazy_static = "1.4.0"
 zxcvbn = "2.2.2"
 log = "0.4.20"
 env_logger = "0.10.1"
 rand = "0.8.5"
 ansi_term = "0.12.1"
+lazy_static = "1.4.0"
+futures = { version = "0.3.30", features = [] }
 

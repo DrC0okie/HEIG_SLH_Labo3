@@ -1,9 +1,0 @@
-p, r.sub.role == "Reviewer", , write
-p, r.sub.role == "Reviewer", r.obj.reviewer == r.sub.name, read
-
-p, r.sub.role == "Owner" && r.sub.role.owned_establishment == r.obj.establishment, r.obj, read
-p, r.sub.role == "Owner", r.obj.reviewer == r.sub.name, read
-
-p, r.sub.role == "Admin", *, read
-p, r.sub.role == "Admin", *, write
-p, r.sub.role == "Admin", *, delete

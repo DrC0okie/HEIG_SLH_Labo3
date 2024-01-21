@@ -46,7 +46,8 @@ impl Database {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::builder()
         .filter_level(log::LevelFilter::Error)// Change this to `Debug` to see debug logs
         .init();

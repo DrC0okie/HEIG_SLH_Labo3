@@ -1,0 +1,2 @@
+p, r.sub.role.name == "Reviewer", r.act.name == "Write"
+p, r.sub.role.name == "Owner" && r.sub.role.owned_establishment != r.obj, r.act.name == "Write"

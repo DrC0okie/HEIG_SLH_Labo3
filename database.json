@@ -19,33 +19,27 @@
       "password": "$argon2id$v=19$m=19456,t=2,p=1$h9e5P8QpoTQA5f7l3OLBng$n7/7hbIX61ItuIjgKqlDywiL6S46wvZw+7bXcWH++Y4",
       "role": {
         "name": "Owner",
-        "owned_establishment": "SelHash"
+        "owned_establishment": "e-Sel Hash"
       }
     }
   },
   "reviews": [
     {
-      "establishment": "McDonalds",
+      "establishment": "e-Sel Hash",
       "reviewer": "admin",
-      "comment": "À fuire !",
-      "grade": 1
-    },
-    {
-      "establishment": "test",
-      "reviewer": "tim",
-      "comment": "bof",
-      "grade": 1
-    },
-    {
-      "establishment": "SelHash",
-      "reviewer": "review",
-      "comment": "Vraiment bien!",
+      "comment": "The main course is a delight",
       "grade": 5
     },
     {
-      "establishment": "test",
-      "reviewer": "admin",
-      "comment": "pas testé",
+      "establishment": "e-Sel Hash",
+      "reviewer": "tim",
+      "comment": "Had to prove my identity to enter... a shame!",
+      "grade": 1
+    },
+    {
+      "establishment": "e-Sel Hash",
+      "reviewer": "review",
+      "comment": "Found bugs in my dish, the server did not respond to my requests, and the soup overflowed",
       "grade": 1
     }
   ]

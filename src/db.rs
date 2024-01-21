@@ -118,7 +118,7 @@ impl Database {
     }
 }
 
-// Initialize the database to the default content provided by the `init` method
+// Initialize the database to t
 impl Default for Database {
     fn default() -> Self {
         let mut db = Self::new();

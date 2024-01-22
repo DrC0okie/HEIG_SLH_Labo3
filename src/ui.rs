@@ -24,7 +24,7 @@ const MAX_COMMENT_LENGTH: usize = 512;
 #[macro_export]
 macro_rules! internal_error {
     ($($arg:tt)*) => {{
-        use ansi_term::Colour::Red;  // Ensure Red is in scope
+        use ansi_term::Colour::Red;
         use log::error;
 
         let formatted_msg = format!($($arg)*);
@@ -115,6 +115,8 @@ fn register() -> ShouldContinue {
 
     // Checks if the username already exists
     let existing_user_validator = move |input: &str| match User::get(input) {
+        // Note: It is mandatory to leak this information to the user,
+        //       otherwise they would not understand why the register process fails
         Some(..) => Ok(Validation::Invalid("Ce nom d'utilisateur existe déjà.".into())),
         None => Ok(Validation::Valid)
     };

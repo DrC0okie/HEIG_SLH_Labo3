@@ -65,7 +65,7 @@ I decided to implement the password validation step with 2 calls to the `Passwor
 
 ### Authentication
 
-No condition were implemented for the password strength or length in the registration process. I decided to use zxcvbn to enforce a strong password (also by providing the username) and enforce the length to be between 8 and 64 characters.
+No condition were implemented for the password strength or length in the registration process. I decided to use `zxcvbn` to enforce a strong password (also by providing the username) and enforce the length to be between 8 and 64 characters.
 
 #### Plaintext credential storage
 
@@ -146,17 +146,13 @@ m = eval(p.sub_rule) && eval(p.act_rule)
 #### Policies
 
 ```
-p, r.sub.role.name == "Reviewer", r.act.name == "WriteReview"
-p, r.sub.role.name == "Reviewer", r.act.name == "ReadOwnReviews"
+p, r.sub.role.name == "Reviewer" || r.sub.role.name == "Owner" || r.sub.role.name == "Admin", r.act.name == "ReadOwnReviews"
+p, r.sub.role.name == "Reviewer" || r.sub.role.name == "Admin", r.act.name == "WriteReview"
 
 p, r.sub.role.name == "Owner" && r.sub.role.owned_establishment != r.obj, r.act.name == "WriteReview"
-p, r.sub.role.name == "Owner", r.act.name == "ReadOwnReviews"
 p, r.sub.role.name == "Owner" && r.sub.role.owned_establishment == r.obj, r.act.name == "ReadEstablishmentReviews"
 
-p, r.sub.role.name == "Admin", r.act.name == "ReadEstablishmentReviews"
-p, r.sub.role.name == "Admin", r.act.name == "WriteReview"
-p, r.sub.role.name == "Admin", r.act.name == "ReadOwnReviews"
-p, r.sub.role.name == "Admin", r.act.name == "DeleteReview"
+p, r.sub.role.name == "Admin", r.act.name == "ReadEstablishmentReviews" || r.act.name == "DeleteReview"
 ```
 
 
@@ -169,7 +165,7 @@ The DB is only saved when the user decides to quit properly the application. Thi
 
 ## UX issues
 
-* The `PasswordDisplayMode` was `Hidden`. This is a problem because `inquire` does not reset the input in case of a validator error, so the user doesn't know that he has to delete the input. I set it to `Masked`to be clearer for the user.
+* The `PasswordDisplayMode` was `Hidden`. This is a problem because `inquire` does not reset the input in case of a validator error, so the user doesn't know that he has to delete the input. I set it to `Masked` to be clearer for the user.
 
 * I didn't want the user to be stuck in a validation loop. For instance, in the login process, in case of an invalid password or username, instead of looping on the prompt, where the user could be stuck if he didn't remember his credentials, I simply display the error and go back in the main menu.
 * I added user confirmation for each user action (Register, Login, Add review, delete review). Like that, the user clearly knows what is the result of his actions.

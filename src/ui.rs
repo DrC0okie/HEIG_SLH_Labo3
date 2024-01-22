@@ -327,6 +327,10 @@ fn list_establishment_reviews(user: &User) -> ShouldContinue {
         Err(e) => internal_error!("List establishment reviews error in policy enforcement: {}", e)
     };
 
+    if Review::of(&establishment).is_empty() {
+        println!("{}", Green.paint("Cet établissement n'a pas encore reçu d'avis."));
+    }
+
     for review in Review::of(&establishment) {
         println!("{}", review);
     }
@@ -338,7 +342,7 @@ fn delete_review(user: &User) -> ShouldContinue {
     match ENFORCER.enforce((&user, "", Action::DeleteReview)) {
         Ok(true) => (),
         Ok(false) => {
-            println!("{}", Red.paint("Vous ne pouvez pas supprimer cet avis."));
+            println!("{}", Red.paint("Vous ne pouvez pas supprimer des avis."));
             return ShouldContinue::Yes;
         },
         Err(e) => internal_error!("Delete review error in policy enforcement: {}", e)

@@ -1,11 +1,7 @@
-p, r.sub.role.name == "Reviewer", r.act.name == "WriteReview"
-p, r.sub.role.name == "Reviewer", r.act.name == "ReadOwnReviews"
+p, r.sub.role.name == "Reviewer" || r.sub.role.name == "Owner" || r.sub.role.name == "Admin", r.act.name == "ReadOwnReviews"
+p, r.sub.role.name == "Reviewer" || r.sub.role.name == "Admin", r.act.name == "WriteReview"
 
 p, r.sub.role.name == "Owner" && r.sub.role.owned_establishment != r.obj, r.act.name == "WriteReview"
-p, r.sub.role.name == "Owner", r.act.name == "ReadOwnReviews"
 p, r.sub.role.name == "Owner" && r.sub.role.owned_establishment == r.obj, r.act.name == "ReadEstablishmentReviews"
 
-p, r.sub.role.name == "Admin", r.act.name == "ReadEstablishmentReviews"
-p, r.sub.role.name == "Admin", r.act.name == "WriteReview"
-p, r.sub.role.name == "Admin", r.act.name == "ReadOwnReviews"
-p, r.sub.role.name == "Admin", r.act.name == "DeleteReview"
+p, r.sub.role.name == "Admin", r.act.name == "ReadEstablishmentReviews" || r.act.name == "DeleteReview"

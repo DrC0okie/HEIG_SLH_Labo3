@@ -1,10 +1,11 @@
 {
   "users": {
-    "admin": {
-      "name": "admin",
+    "tim": {
+      "name": "tim",
       "password": "$argon2id$v=19$m=19456,t=2,p=1$h9e5P8QpoTQA5f7l3OLBng$n7/7hbIX61ItuIjgKqlDywiL6S46wvZw+7bXcWH++Y4",
       "role": {
-        "name": "Admin"
+        "name": "Owner",
+        "owned_establishment": "Not e-Sel Hash"
       }
     },
     "review": {
@@ -14,12 +15,11 @@
         "name": "Reviewer"
       }
     },
-    "tim": {
-      "name": "tim",
+    "admin": {
+      "name": "admin",
       "password": "$argon2id$v=19$m=19456,t=2,p=1$h9e5P8QpoTQA5f7l3OLBng$n7/7hbIX61ItuIjgKqlDywiL6S46wvZw+7bXcWH++Y4",
       "role": {
-        "name": "Owner",
-        "owned_establishment": "e-Sel Hash"
+        "name": "Admin"
       }
     }
   },
@@ -34,6 +34,12 @@
       "establishment": "e-Sel Hash",
       "reviewer": "tim",
       "comment": "Had to prove my identity to enter... a shame!",
+      "grade": 1
+    },
+    {
+      "establishment": "Not e-Sel Hash",
+      "reviewer": "admin",
+      "comment": "Go to the real one, this one is a scam",
       "grade": 1
     },
     {

@@ -1,4 +1,5 @@
 use std::ops::Range;
+use log::info;
 use zxcvbn::zxcvbn;
 
 const MIN_PASSWORD_STRENGTH: u8 = 3;
@@ -62,6 +63,7 @@ pub fn validate_password(password: &str, username: Option<&str>) -> Result<(), S
     if password_strength < MIN_PASSWORD_STRENGTH {
         return Err("Mot de passe trop faible: ".to_string());
     }
+    info!("Password validation success for user {}", username.unwrap_or("not provided"));
     Ok(())
 }
 

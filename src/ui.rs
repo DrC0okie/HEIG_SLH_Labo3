@@ -4,11 +4,12 @@ use derive_more::Display;
 use inquire::{Confirm, CustomType, max_length, min_length, Password, PasswordDisplayMode, Select, Text};
 use inquire::validator::{MaxLengthValidator, MinLengthValidator, Validation};
 use strum::{EnumIter, IntoEnumIterator};
-use crate::utils::{input_validation, hashing, enforcer::ENFORCER};
+use crate::utils::{input_validation, hashing};
 use ansi_term::Colour::Red;
-use casbin::{CoreApi};
 use inquire::error::InquireResult;
+use log::{info, warn};
 use crate::db::DATABASE;
+use crate::utils::enforcer::access;
 
 #[derive(Debug)]
 enum ShouldContinue {
@@ -102,10 +103,12 @@ fn login() -> ShouldContinue {
     }
 
     if ok {
-        println!("{} {}", Green.paint("Bienvenue, "), Green.paint(username));
+        println!("{} {}", Green.paint("Bienvenue, "), Green.paint(&username));
+        info!("User {} logged in successfully", &username);
         loop_menu(|| user_menu(&user.clone().unwrap()));
     } else {
         println!("{}", Red.paint("Nom d'utilisateur ou mot de passe incorrect"));
+        warn!("Failed login attempt for user {}", &username);
     }
 
     ShouldContinue::Yes
@@ -197,6 +200,7 @@ fn register() -> ShouldContinue {
     // Save the DB
     let _ = DATABASE.lock().unwrap().save().map_err(|e| { internal_error!("Error saving the database: {}", e) });
 
+    info!("User {} registered successfully", username);
     println!("{}", Green.paint("Inscription réussie."));
     ShouldContinue::Yes
 }
@@ -237,7 +241,7 @@ fn user_menu(user: &User) -> ShouldContinue {
 }
 
 fn list_own_reviews(user: &User) -> ShouldContinue {
-    match ENFORCER.enforce((&user, "", Action::ReadOwnReviews)) {
+    match access(&user, None, Action::ReadOwnReviews) {
         Ok(true) => (),
         Ok(false) => {
             println!("{}", Red.paint("Vous ne pouvez pas voir vos avis."));
@@ -270,7 +274,7 @@ fn add_review(user: &User) -> ShouldContinue {
     }
 
     // Check if the user can write reviews for this establishment
-    match ENFORCER.enforce((&user, &establishment, Action::WriteReview)) {
+    match access(&user, Some(&establishment), Action::WriteReview) {
         Ok(true) => (),
         Ok(false) => {
             println!("{}", Red.paint("Impossible d'ajouter un avis sur votre propre établissement."));
@@ -318,7 +322,7 @@ fn list_establishment_reviews(user: &User) -> ShouldContinue {
         .map_err(|e| { internal_error!("List establishment reviews error in establishment prompt: {}", e) })
         .unwrap();
 
-    match ENFORCER.enforce((&user, &establishment, Action::ReadEstablishmentReviews)) {
+    match access(&user, Some(&establishment), Action::ReadEstablishmentReviews) {
         Ok(true) => (),
         Ok(false) => {
             println!("{}", Red.paint("Vous ne pouvez pas voir les avis de cet établissement."));
@@ -339,10 +343,10 @@ fn list_establishment_reviews(user: &User) -> ShouldContinue {
 }
 
 fn delete_review(user: &User) -> ShouldContinue {
-    match ENFORCER.enforce((&user, "", Action::DeleteReview)) {
+    match access(&user, None, Action::DeleteReview) {
         Ok(true) => (),
         Ok(false) => {
-            println!("{}", Red.paint("Vous ne pouvez pas supprimer des avis."));
+            println!("{}", Red.paint("Vous ne pouvez pas supprimer d'avis."));
             return ShouldContinue::Yes;
         },
         Err(e) => internal_error!("Delete review error in policy enforcement: {}", e)

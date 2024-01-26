@@ -1,3 +1,4 @@
+use std::fmt;
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use crate::db::DATABASE;
@@ -9,6 +10,17 @@ pub enum Action {
     ReadEstablishmentReviews,
     WriteReview,
     DeleteReview,
+}
+
+impl fmt::Display for Action {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", match self {
+            Action::ReadOwnReviews => "Read Own Reviews",
+            Action::ReadEstablishmentReviews => "Read Establishment Reviews",
+            Action::WriteReview => "Write Review",
+            Action::DeleteReview => "Delete Review",
+        })
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Hash)]
